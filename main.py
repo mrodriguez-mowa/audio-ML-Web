@@ -1,7 +1,7 @@
 import re
 from pydub import AudioSegment
 import os
-
+import requests as req
 
 
 # Read the audio file
@@ -14,22 +14,29 @@ for audio in audio_list:
   else:
     print('SE PROCESARÁ POR WHISPER Y GENERARÁ UN ARCHIVO DE TEXTO')
     # SE LEE EL ARCHIVO DE TEXTO #
-    transcript_file = f'./txt/{audio}.txt'
+    transcript_file = f'./txt/{audio[:-4]}.txt'
     valid_transcript = []
     with open(transcript_file, 'r', encoding='utf-8') as file:
       transcript = file.read()
+    
+    # SE QUITAN LOS TIMESTAMPS Y SPEAKERS #
+    new_transcript = ""
     text = transcript.split('\n')
     for line in text:
       if not line.upper().__contains__('SPEAKER'):
           valid_transcript.append(line)
       new_transcript = ' '.join(valid_transcript)
-      words = new_transcript.split(' ')
-      if (len(words) <= 20):
-        print('NO ES UN AUDIO VÁLIDO PARA PROCESAR')
-      else:
-        print('ES UN AUDIO VÁLIDO PARA PROCESAR')
-        # SE HACE LA PETICION AL NLP #
-
+    
+    if (len(new_transcript) <= 20):
+      print('NO ES UN AUDIO VÁLIDO PARA PROCESAR')
+    else:
+      print('ES UN AUDIO VÁLIDO PARA PROCESAR')
+      # SE HACE LA PETICION AL NLP #
+      url = 'http://localhost:7000/sentiment'
+      data = {'text': transcript}
+      response = req.post(url, data=data)
+      print(response.json())
+      
 """
 
 
