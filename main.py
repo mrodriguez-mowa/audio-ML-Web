@@ -2,12 +2,22 @@ import re
 from pydub import AudioSegment
 import os
 import requests as req
-
+from pysentimiento import create_analyzer
+import openpyxl
 
 # Read the audio file
 audio_list = os.listdir('./audios')
+analyzer = create_analyzer(lang="es", task="sentiment")
+report = []
+
+analyzer_values = {
+  "NEG": "Negativo",
+  "NEU": "Neutro",
+  "POS": "Positivo"
+}
 
 for audio in audio_list:
+  
   current_audio = AudioSegment.from_file('./audios/' + audio, format="wav")
   if current_audio.duration_seconds <= 15:
     print('AUDIO MUY CORTO')
@@ -31,12 +41,64 @@ for audio in audio_list:
       print('NO ES UN AUDIO VÁLIDO PARA PROCESAR')
     else:
       print('ES UN AUDIO VÁLIDO PARA PROCESAR')
-      # SE HACE LA PETICION AL NLP #
-      url = 'http://localhost:7000/sentiment'
-      data = {'text': transcript}
-      response = req.post(url, data=data)
-      print(response.json())
+      # SE HACE ANALIZA TODO EL TEXTO #
+      # print(analyzer.predict(new_transcript))
+      # SE SEPARARÁ TEXTO POR SPEAKER #
+      value_report = {
+        'audio': audio,
+        'txt': audio[:-4] + '.txt',
+        'speaker_1': '',
+        'speaker_2': '',
+      }
+      speaker_1_text = []
+      speaker_2_text = []
+      current_speaker = 0
+      for line in text:
+        if line.upper().__contains__('SPEAKER'):
+          id_val = line.split(' ')[1]
+          current_speaker = int(id_val)
+        else:
+          if current_speaker == 1:
+            speaker_1_text.append(line)
+          else:
+            speaker_2_text.append(line)
+
+      # SE ANALIZA EL TEXTO DE CADA SPEAKER #
+      speaker_1_text = ' '.join(speaker_1_text)
+      speaker_2_text = ' '.join(speaker_2_text)
+
+      speaker_1_sentiment = analyzer.predict(speaker_1_text)
+      speaker_2_sentiment = analyzer.predict(speaker_2_text)
+
       
+
+      value_report['speaker_1'] = analyzer_values[str(speaker_1_sentiment).replace("AnalyzerOutput(","").split(",")[0].split("=")[1]]
+      value_report['speaker_2'] = analyzer_values[str(speaker_2_sentiment).replace("AnalyzerOutput(","").split(",")[0].split("=")[1]]
+
+      report.append(value_report)
+
+      # SE GENERA EL REPORTE EN EXCEL #
+      wb = openpyxl.Workbook()
+      ws = wb.active
+      ws.title = 'Reporte'
+
+      ws['A1'] = 'Audio'
+      ws['B1'] = 'Txt'
+      ws['C1'] = 'Speaker 1'
+      ws['D1'] = 'Speaker 2'
+
+      for i in range(len(report)):
+        ws[f'A{i + 2}'] = report[i]['audio']
+        ws[f'B{i + 2}'] = report[i]['txt']
+        ws[f'C{i + 2}'] = report[i]['speaker_1']
+        ws[f'D{i + 2}'] = report[i]['speaker_2']
+
+      wb.save('reporte.xlsx')
+      
+
+
+
+
 """
 
 
