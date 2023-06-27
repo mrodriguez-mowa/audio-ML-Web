@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-toastify';
+import Loader from '../components/loader/Loader';
 
 const AuthHOC = ({children}:any) => {
 
@@ -24,7 +25,7 @@ const AuthHOC = ({children}:any) => {
 
   return (
     <div>
-      {children}
+      { isLogged ?  children : <Loader />}
     </div>
   )
 }
