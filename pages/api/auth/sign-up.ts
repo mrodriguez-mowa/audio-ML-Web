@@ -10,28 +10,29 @@ export default async function handler(
     // VALIDAR MÉTODO POST
     if (req.method == "POST") {
         const { username, password, name, lastName }: ICreateUser = req.body;
-
-        console.log(username, password, name, lastName)
-
+        
         const userInstance = new UserDAO();
 
-        const created = await userInstance.CreateUser({
+
+        const {created, message} = await userInstance.CreateUser({
             username,
             password,
             name,
             lastName,
-        });
+        })
+        
 
-        if (created) {
-            res.send({
-                status: res.status,
-                message: "¡Usuario creado!",
-            });
-        } else {
-            res.send({
-                status: res.status,
-                message: "Ocurrió un error inesperado",
-            });
-        }
+        console.log({
+            created,
+            message
+        })
+
+        return res.send({
+            created,
+            message
+        })
+
     }
+
+    
 }

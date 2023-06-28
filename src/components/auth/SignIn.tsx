@@ -51,6 +51,7 @@ const SignIn = ({ changeForm }: ISignIn) => {
         e.preventDefault();
 
         const response = axios.post("/api/auth/sign-in", data);
+        console.log(response)
     };
 
     return (

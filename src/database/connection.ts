@@ -1,8 +1,17 @@
-import { Pool } from "pg"
+import { Client } from "pg"
 
-const poolConnection = async () => {
-    const pool = new Pool();  
-    return pool;
+const connectDb = async () => {
+    
+    const ClientConnection = new Client({
+        host: process.env.PGHOST,
+        port: process.env.PGPORT,
+        database: process.env.PGDATABASE,
+        user: process.env.PGUSER,
+        password: process.env.PGPASSWORD
+    })
+
+    return ClientConnection
 }
 
-export default poolConnection;
+
+export default connectDb;

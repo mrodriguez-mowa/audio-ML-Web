@@ -31,12 +31,25 @@ const SignUp = ({ changeForm }: ISignUp) => {
         })
     }
 
-    const handleSubmit = (e: any) => {
+    const handleSubmit =  async (e: any) => {
         e.preventDefault()
 
-        const response = axios.post('/api/auth/sign-up', data)
 
+        const res =  await axios.post('/api/auth/sign-up', data)
         
+        const { created,message } = res.data
+
+        if (created){
+            console.log("creado")
+            toast.success(message)
+        } else {
+            toast.warning(message)
+        }
+        
+
+
+
+
     }
 
 
