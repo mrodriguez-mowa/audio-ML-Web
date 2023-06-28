@@ -69,7 +69,7 @@ export class UserDAO {
             await connection.connect();
 
             const res = await connection.query(
-                "SELECT username, password FROM users WHERE username = ?",
+                "SELECT username, password FROM users WHERE username = $1",
                 [username]
             );
 

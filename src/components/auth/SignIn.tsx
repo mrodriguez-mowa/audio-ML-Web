@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 interface ISignIn {
     changeForm: (value: boolean) => void;
@@ -47,11 +48,24 @@ const SignIn = ({ changeForm }: ISignIn) => {
 
     };
 
-    const handleSubmit = (e: any) => {
+    const handleSubmit =  (e: any) => {
         e.preventDefault();
 
-        const response = axios.post("/api/auth/sign-in", data);
-        console.log(response)
+        toast.loading("Autenticando...", {
+            toastId: "loginToast"
+        })
+
+        setTimeout(async ()=>{
+            const res = await axios.post("/api/auth/sign-in", data);
+        
+        toast.update("loginToast", {
+            type: res.data.isLogged ? "success" : "warning",
+            render: res.data.isLogged ? "¡Bienvendido!" : "Usuario o contraseña incorrectos",
+            isLoading: false,
+            autoClose: 1000
+        })
+        }, 1000)
+        
     };
 
     return (

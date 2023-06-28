@@ -16,10 +16,8 @@ export const encryptPassword =  async (password: string):Promise<String> => {
 }
 
 export const comparePassword = async ({password, hash}:{password:string, hash:string}):Promise<Boolean> => {
-    let areSame = false
-    bcrypt.compare(password, hash, function(err,result){
-        areSame = result
-    })
+
+    const result = await bcrypt.compare(password,hash)
     
-    return areSame
+    return result
 }

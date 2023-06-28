@@ -16,7 +16,10 @@ const AuthHOC = ({children}:any) => {
         setIsLogged(authValue);
 
         if (!authValue) {
-            toast.error("Inicia sesión primero");
+            toast.error("Inicia sesión primero", {
+              toastId: "loginWarn",
+              autoClose: 1000
+            });
             setTimeout(() => {
                 push("/auth");
             }, 1500);
