@@ -9,18 +9,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const authClass = new UserDAO()
 
-        const isLogged = await authClass.LoginUser({
+        const {isLogged, userId, userName, isAdmin } = await authClass.LoginUser({
             username, password
         })
 
-        if (isLogged){
+        if ({isLogged}){
             console.log(username, "Login OK")
         } else {
             console.warn(username, "Login FAIL")
         }
 
         return res.send({
-            isLogged
+            isLogged,
+            userId,
+            userName,
+            isAdmin
         })
     }
 }

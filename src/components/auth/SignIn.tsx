@@ -3,16 +3,22 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../redux/store";
+import { authLocalStorage, signInResult } from "../../redux/slice/authSlice";
+
 interface ISignIn {
     changeForm: (value: boolean) => void;
 }
 
 const SignIn = ({ changeForm }: ISignIn) => {
     /*
-      const dispatch: AppDispatch = useDispatch()
-  
-      const { isAuth } = useSelector((state: RootState) => state.auth)
-  */
+        const dispatch: AppDispatch = useDispatch()
+    
+        const { isAuth } = useSelector((state: RootState) => state.auth)
+    */
+
+    const dispatch: AppDispatch = useDispatch();
 
     const [data, setData] = useState<any>({
         username: "",
@@ -28,11 +34,11 @@ const SignIn = ({ changeForm }: ISignIn) => {
             push("/");
         } else {
             /*
-                  dispatch(signInOK({
-                    isAuth: false,
-                    user: ""
-                  }))
-                  */
+                        dispatch(signInOK({
+                          isAuth: false,
+                          user: ""
+                        }))
+                        */
             push("/auth");
         }
     }, [isAuthenticated]);
@@ -44,28 +50,44 @@ const SignIn = ({ changeForm }: ISignIn) => {
                 [id]: value,
             };
         });
-
-
     };
 
-    const handleSubmit =  (e: any) => {
+    const handleSubmit = (e: any) => {
         e.preventDefault();
 
         toast.loading("Autenticando...", {
-            toastId: "loginToast"
-        })
+            toastId: "loginToast",
+        });
 
-        setTimeout(async ()=>{
+        setTimeout(async () => {
             const res = await axios.post("/api/auth/sign-in", data);
-        
-        toast.update("loginToast", {
-            type: res.data.isLogged ? "success" : "warning",
-            render: res.data.isLogged ? "¡Bienvendido!" : "Usuario o contraseña incorrectos",
-            isLoading: false,
-            autoClose: 1000
-        })
-        }, 1000)
-        
+
+            toast.update("loginToast", {
+                type: res.data.isLogged ? "success" : "warning",
+                render: res.data.isLogged
+                    ? "¡Bienvendido!"
+                    : "Usuario o contraseña incorrectos",
+                isLoading: false,
+                autoClose: 1000,
+            });
+
+            dispatch(
+                signInResult({
+                    isAdmin: res.data.isAdmin,
+                    user: res.data.userName,
+                    userId: res.data.userId,
+                    isAuth: res.data.isLogged,
+                })
+            );
+
+            dispatch(authLocalStorage())
+
+            setTimeout(() => {
+                if (res.data.isLogged) {
+                    push("/");
+                }
+            }, 1000);
+        }, 1000);
     };
 
     return (
@@ -126,7 +148,6 @@ const SignIn = ({ changeForm }: ISignIn) => {
             </div>
         </form>
     );
-
 };
 
 export default SignIn;

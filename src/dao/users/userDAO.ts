@@ -6,7 +6,12 @@ import {
 
 import connectDb from "../../database/connection";
 
+
+
 export class UserDAO {
+
+    
+
     public async CreateUser({
         username,
         password,
@@ -61,7 +66,7 @@ export class UserDAO {
     }: {
         username: string;
         password: string;
-    }): Promise<Boolean> {
+    }): Promise<any> {
         let success = false;
         const connection = await connectDb();
 
@@ -69,7 +74,7 @@ export class UserDAO {
             await connection.connect();
 
             const res = await connection.query(
-                "SELECT username, password FROM users WHERE username = $1",
+                "SELECT user_id, username, password, is_admin FROM users WHERE username = $1",
                 [username]
             );
 
@@ -81,6 +86,16 @@ export class UserDAO {
                 const validPassword = await comparePassword({ password, hash });
 
                 if (!validPassword) success = false;
+
+                const {user_id, username, is_admin} = res.rows[0]
+
+                return {
+                    isLogged: success,
+                    userId: user_id,
+                    userName: username,
+                    isAdmin: is_admin
+                }
+
             }
         } catch (error) {
             console.error(error);
@@ -88,7 +103,9 @@ export class UserDAO {
             await connection.end();
         }
 
-        return success;
+        return {
+            isLogged: success
+        };
     }
 
     public async ValidateUser(username: string): Promise<{

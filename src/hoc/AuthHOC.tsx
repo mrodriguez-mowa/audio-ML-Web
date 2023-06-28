@@ -9,7 +9,7 @@ const AuthHOC = ({children}:any) => {
 
     const { push } = useRouter();
     useEffect(() => {
-        const logged = localStorage.getItem("isAuthenticated");
+        const logged = localStorage.getItem("isAuth");
 
         const authValue = logged == "true";
 
