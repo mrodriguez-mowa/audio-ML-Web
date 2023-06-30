@@ -7,40 +7,52 @@ import AudioPlayer from '../src/components/audio/AudioPlayer'
 import MenuDrop from '../src/components/header/Menu'
 import RadioButton from '../src/components/audio/RadioButton'
 import { useEffect, useState } from 'react'
+import axios from 'axios'
 
 
 
 const Home: NextPage = () => {
-  const convo = [{
-    text: "HOLA! Me comunico con Luis?",
-    convId: 1
-  }, {
-    text: "Sí, el habla",
-    convId: 2
-  }, {
-    text: "Me contacto por encargo de la empresa",
-    convId: 3
-  }, {
-    text: "No pagué porque tuve problemas con",
-    convId: 4
-  }]
 
   const [textSpeaker, setTextSpeaker] = useState<any>([])
 
+  const [convx, setConvx] = useState<any>([])
+
+  const [currentId, setCurrentId ] = useState<string>("")
+
+  const getAudioDetails = (param:string) => {
+    
+    const data = axios.get("/api/audios/get-audio")
+      .then((datax) => {
+        setConvx(datax.data)
+      }).catch((err) => {
+        console.log(err)
+      })
+      
+    return data
+  }
+
+
   useEffect(() => {
-    const initialState = convo.map((el) => {
+
+    // traer audio
+    getAudioDetails(currentId)
+
+    const initialState = convx.map((el: any) => {
       return {
-        conversationId: el.convId,
-        speakerLabel: 1 // Agente default
+        conversationId: el.conversation_id,
+        speakerLabel: 1, // Agente default,
+        text: el.message
       }
     })
+
     setTextSpeaker(initialState)
+    
   }, [])
 
   const handleOnChange = ({ conversationId, speakerLabel }: { conversationId: number, speakerLabel: number }) => {
 
     const idx = textSpeaker.findIndex((element: any) => element.conversationId == conversationId)
-    
+
     if (idx != -1) {
       const newStateArray = [...textSpeaker]
       newStateArray[idx] = {
@@ -64,13 +76,13 @@ const Home: NextPage = () => {
 
         <Header title='Hola' />
 
-        <AudioPlayer audio="demo.mp3" />
+        <AudioPlayer audio={convx[0]?.audio_name} />
 
         <div>
-          {convo.map((datax, idx) => {
+          {/*convx.map((datax: any, idx: number) => {
             return <div key={idx + "convo"}>
               <div className='text-center my-2 md:w-5/12 text-dark-primary rounded-md py-1 bg-white w-10/12 mx-auto' >
-                {datax.text}
+                {datax.message}
               </div>
 
               <div className='flex mx-auto  items-center justify-between'>
@@ -78,11 +90,13 @@ const Home: NextPage = () => {
               </div>
 
             </div>
-          })}
+          })*/}
         </div>
 
         <div className='container mx-auto my-16 text-center'>
-          <button  className='bg-sky-400 px-16 py-2 text-sky-900 font-semibold rounded-lg'>Siguiente</button>
+          <button onClick={()=>{
+            getAudioDetails(" ")
+          }} className='bg-sky-400 px-16 py-2 text-sky-900 font-semibold rounded-lg'>Siguiente</button>
         </div>
 
       </MainLayout>

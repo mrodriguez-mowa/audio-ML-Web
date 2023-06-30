@@ -7,7 +7,7 @@ interface ILayout {
 
 const MainLayout = ({children}: ILayout):JSX.Element => {
   return (
-    <div className="w-full h-screen min-h-screen bg-light-white">{ children }</div>
+    <div className="w-full min-h-screen bg-light-white">{ children }</div>
   )
 }
 
