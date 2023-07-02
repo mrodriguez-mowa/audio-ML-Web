@@ -5,14 +5,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // VALIDAR FORMULARIO
     if (req.method == 'GET'){
-        // const { id } = req.query
+        const { id } = req.query
 
         const audioInstance = new AudioDAO()
 
-        const audioDetails = await audioInstance.GetAudio();
+        const audioDetails = await audioInstance.GetAudio(id);
         
-        console.log(audioDetails)
-
         return res.send(audioDetails)
         
     }
