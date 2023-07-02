@@ -3,8 +3,8 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../redux/store";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../redux/store";
 import { authLocalStorage, signInResult } from "../../redux/slice/authSlice";
 
 interface ISignIn {
@@ -12,12 +12,7 @@ interface ISignIn {
 }
 
 const SignIn = ({ changeForm }: ISignIn) => {
-    /*
-        const dispatch: AppDispatch = useDispatch()
     
-        const { isAuth } = useSelector((state: RootState) => state.auth)
-    */
-
     const dispatch: AppDispatch = useDispatch();
 
     const [data, setData] = useState<any>({
@@ -33,12 +28,7 @@ const SignIn = ({ changeForm }: ISignIn) => {
         if (isAuthenticated) {
             push("/");
         } else {
-            /*
-                        dispatch(signInOK({
-                          isAuth: false,
-                          user: ""
-                        }))
-                        */
+            setIsAuthenticated(false)
             push("/auth");
         }
     }, [isAuthenticated]);

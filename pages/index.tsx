@@ -71,6 +71,7 @@ const Home: NextPage = () => {
     const userId = localStorage.getItem("userId")
 
     await axios.post("/api/audios/classify-audio", {textSpeaker, userId, currentId })
+    getAudioDetails("")
   }
 
   return (
@@ -100,7 +101,6 @@ const Home: NextPage = () => {
 
         <div className='container mx-auto my-16 text-center'>
           <button onClick={() => {
-            // getAudioDetails(" ")
             handleSubmit()
           }} className='bg-sky-400 px-16 py-2 text-sky-900 font-semibold rounded-lg'>Siguiente</button>
         </div>

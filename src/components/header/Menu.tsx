@@ -6,6 +6,7 @@ import { AppDispatch } from "../../redux/store";
 
 
 import { useRouter } from "next/navigation";
+import { logout } from "../../redux/slice/authSlice";
 
 export default function MenuDrop() {
   const dispatch: AppDispatch = useDispatch();
@@ -14,7 +15,7 @@ export default function MenuDrop() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   const logoutFn = () => {
-    // dispatch(logout());
+    dispatch(logout());
     push("/auth");
   };
 

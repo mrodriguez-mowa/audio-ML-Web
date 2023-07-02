@@ -11,3 +11,16 @@ body {
     background-color: #EEEEEE;
 }
 
+.your-indicator {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  user-select: none;
+
+}

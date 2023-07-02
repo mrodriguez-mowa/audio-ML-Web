@@ -30,10 +30,16 @@ export const authSlice = createSlice({
             localStorage.setItem("user", state.user),
             localStorage.setItem("userId", state.userId.toString()),
             localStorage.setItem("isAuth", state.isAuth.toString() == "true" ? "true" : "false" )
+        },
+        logout: () => {
+            localStorage.removeItem("isAdmin")
+            localStorage.removeItem("isAuth")
+            localStorage.removeItem("userId")
+            localStorage.removeItem("user")
         }
     }
 })
 
-export const { signInResult, authLocalStorage } = authSlice.actions;
+export const { signInResult, authLocalStorage, logout } = authSlice.actions;
 
 export default authSlice.reducer;

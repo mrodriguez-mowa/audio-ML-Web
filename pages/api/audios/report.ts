@@ -7,11 +7,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method == 'GET'){
         const { id } = req.query
 
-        // console.log(id, "query param")
+        console.log(id, "query param")
 
         const audioInstance = new AudioDAO()
 
-        const audioDetails = await audioInstance.GetAudio(id);
+        const audioDetails = await audioInstance.AudiosReportByUser(id)
         
         return res.send(audioDetails)
         
