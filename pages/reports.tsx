@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import axios from 'axios'
-import AuthHOC from '../../src/hoc/AuthHOC'
-import Header from '../../src/components/header/Header'
+import AuthHOC from '../src/hoc/AuthHOC'
+import Header from '../src/components/header/Header'
 
 import ProgressBar from "react-customizable-progressbar"
 

@@ -2,7 +2,7 @@ import connectDb from "../../database/connection";
 
 export class AudioDAO {
 
-    public async GetAudio(id:any) {
+    public async GetAudio(id: any) {
         const connection = await connectDb()
 
         try {
@@ -20,12 +20,12 @@ export class AudioDAO {
                 console.log("null id")
                 const randomId = await this.GetRandomAudioId()
 
-                console.log("Random ID",randomId)
+                console.log("Random ID", randomId)
                 res = await connection.query(`select a.audio_code, a.audio_name, c.message, c.conversation_id from audios a  
                 join conversations c on c.audio_code  = a.audio_code where a.audio_code = $1 order by conversation_id asc`, [randomId])
-                
+
                 await this.UpdateDeliveredStatus(randomId)
-            
+
             }
 
             return res.rows
@@ -53,7 +53,7 @@ export class AudioDAO {
                 ORDER BY RANDOM()
                 LIMIT 1;
             `)
-            
+
 
             randomId = randomIdRes.rows[0].audio_code
 
@@ -66,7 +66,7 @@ export class AudioDAO {
         return randomId
     }
 
-    public async UpdateDeliveredStatus(audioId:string){
+    public async UpdateDeliveredStatus(audioId: string) {
         const connection = await connectDb()
         try {
             await connection.connect()
@@ -80,7 +80,7 @@ export class AudioDAO {
         }
     }
 
-    public async UpdateSpeakerLabel({ agentSpeaker, clientSpeaker, currentId, userId } : any ) {
+    public async UpdateSpeakerLabel({ agentSpeaker, clientSpeaker, currentId, userId }: any) {
         // console.log(agentSpeaker, clientSpeaker, currentId, userId )
         const connection = await connectDb()
         try {
@@ -106,7 +106,7 @@ export class AudioDAO {
         }
     }
 
-    public async AudiosReportByUser(userId:any) {
+    public async AudiosReportByUser(userId: any) {
         const connection = await connectDb()
         try {
             await connection.connect()
@@ -127,16 +127,97 @@ export class AudioDAO {
                 name: userData.rows[0].name,
                 lastname: userData.rows[0].last_name
             }
-            
+
             return values
 
 
         } catch (error) {
-            
+
         } finally {
 
         }
-        
+
+    }
+
+
+    // ADMIN MODULE
+
+    public async ClassifiedAudios() {
+
+        const connection = await connectDb()
+
+        try {
+            await connection.connect()
+            
+            const res = await connection.query(`select count(labeled_speaker) as total, labeled_speaker as new_type from conversations where labeled_speaker is not null group by labeled_speaker`)
+
+            return res.rows
+
+        } catch (error) {
+            console.error(error)
+        } finally {
+            await connection.end()
+        }
+    }
+
+    public async ClassifiedByUser() {
+        const connection = await connectDb()
+
+        try {
+            await connection.connect()
+            const res = await connection.query(`select count(u.*) as total, CONCAT(u.name, ' ', u.last_name) as new_type 
+            from audios a inner join users u on u.user_id  = a.classified_by
+            group by u.name, u.last_name`)
+            return res.rows
+
+        } catch (error) {
+            console.error(error)
+        } finally {
+            await connection.end()
+        }
+    }
+
+    public async AverageByUser() {
+        const connection = await connectDb()
+
+        try {
+            await connection.connect()
+
+            const res = await connection.query(`SELECT AVG(count_respuestas)::integer AS total, CONCAT (name,' ' ,u.last_name) as new_type
+            FROM (
+              SELECT COUNT(*) AS count_respuestas,
+                classified_by
+              FROM audios a 
+                where status = 2
+              GROUP BY date_trunc('hour', classified_at), classified_by
+            ) AS subquery inner join users u on u.user_id = classified_by  group by  u."name" , u.last_name `)
+            
+            return res.rows
+
+        } catch (error) {
+            console.error(error)
+        } finally {
+            await connection.end()
+        }
+    }
+
+    public async GetReportByDate(date:any) {
+        const connection = await connectDb()
+
+        try {
+            await connection.connect()
+            const res = await connection.query(`select count(u.*) as total, CONCAT(u.name, ' ', u.last_name) as new_type 
+            from audios a inner join users u on u.user_id  = a.classified_by 
+            where date_trunc('day', classified_at) = $1 group by u.name, u.last_name `, [
+                date
+            ])
+
+            return res.rows
+        } catch (error) {
+            console.error(error)
+        } finally {
+            await connection.end()
+        }
     }
 
 }
