@@ -225,7 +225,7 @@ const Admin = () => {
 
             <div className='md:w-8/12  px-10 my-10 bg-white mx-auto overflow-hidden items-center justify-center hidden md:flex flex-col w-10/12 h-auto rounded-lg shadow-md '>
                 <div className='w-11/12 mx-auto flex items-center'>
-                    <BarChart label="Respuestas" title={`Total Respuestas ${dataMessages.reduce((sum: any, currentValue: any) => {
+                    <BarChart label="Respuestas" title={`Total Calificaciones ${dataMessages.reduce((sum: any, currentValue: any) => {
                         const total = parseInt(currentValue.total);
                         return sum + total;
                     }, 0)}`} data={dataMessages} />
@@ -235,14 +235,14 @@ const Admin = () => {
 
             <div className='md:w-8/12  px-10 my-10 bg-white mx-auto overflow-hidden items-center justify-center hidden md:flex flex-col w-10/12 h-auto rounded-lg shadow-md '>
                 <div className='w-11/12 mx-auto flex items-center'>
-                    <BarChart label="Respuestas" title="Respuestas por Usuario" data={dataUsers} />
+                    <BarChart label="Audios" title="Audios por Usuario" data={dataUsers} />
                 </div>
             </div>
 
 
             <div className='md:w-8/12  px-10 my-10 bg-white mx-auto overflow-hidden items-center justify-center hidden md:flex flex-col w-10/12 h-auto rounded-lg shadow-md '>
                 <div className='w-11/12 mx-auto flex items-center'>
-                    <BarChart label="Respuestas" title="Promedio Respuestas por Hora" data={average} />
+                    <BarChart label="Audios" title="Promedio Audios por Hora" data={average} />
                 </div>
             </div>
 
@@ -254,7 +254,7 @@ const Admin = () => {
                     getUserAnswersToday(datex)
                 }} value={date} />
                 <div className='w-11/12 mx-auto flex items-center'>
-                    <BarChart label="Respuestas" title={`Repuestas por usuario | ${moment(date).format('DD-MM-YYYY')}`} data={userPerDay} />
+                    <BarChart label="Audios" title={`Audios por usuario | ${moment(date).format('DD-MM-YYYY')}`} data={userPerDay} />
                 </div>
             </div>
 
