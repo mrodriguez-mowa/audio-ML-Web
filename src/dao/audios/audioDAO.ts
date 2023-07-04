@@ -11,7 +11,7 @@ export class AudioDAO {
 
             let res
 
-            if (id != 'null') {
+            if (id != "null") {
                 console.log("valid audio id")
                 res = await connection.query(`select a.audio_code, a.audio_name, c.message, c.conversation_id from audios a  
                 join conversations c on c.audio_code  = a.audio_code where a.audio_code = $1 order by conversation_id asc`, [id])

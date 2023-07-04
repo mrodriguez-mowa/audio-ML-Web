@@ -17,7 +17,7 @@ const Home: NextPage = () => {
 
   const [convx, setConvx] = useState<any>([])
 
-  const [currentId, setCurrentId] = useState("")
+  const [currentId, setCurrentId] = useState(null)
 
   const getAudioDetails = (param: any) => {
 
@@ -46,7 +46,7 @@ const Home: NextPage = () => {
 
 
   useEffect(() => {
-    const audioCode = currentId.length == 0 ? localStorage.getItem("audio_code") : currentId
+    const audioCode = currentId == null ? localStorage.getItem("audio_code") : currentId
 
     getAudioDetails(audioCode)
 
@@ -71,7 +71,7 @@ const Home: NextPage = () => {
     const userId = localStorage.getItem("userId")
 
     await axios.post("/api/audios/classify-audio", {textSpeaker, userId, currentId })
-    getAudioDetails("")
+    getAudioDetails(null)
   }
 
   return (

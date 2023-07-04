@@ -17,5 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         await audioInstance.UpdateSpeakerLabel({agentSpeaker, clientSpeaker, currentId, userId})
 
+        return res.send(res.statusCode)
     }
 }
