@@ -80,7 +80,7 @@ const Home: NextPage = () => {
 
         <Header title='Hola' />
         <>
-          {convx[0]?.audio_name ? <AudioPlayer audio={convx[0].audio_name} /> : <TailwindLoader />}
+          {convx[0]?.audio_name ? <AudioPlayer audioId={()=>{getAudioDetails(null)}} audioCode={convx[0].audio_code}  audio={convx[0].audio_name} /> : <TailwindLoader />}
         </>
 
 

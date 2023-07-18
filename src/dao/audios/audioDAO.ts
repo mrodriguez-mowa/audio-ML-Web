@@ -220,4 +220,30 @@ export class AudioDAO {
         }
     }
 
+    public async UpdateStatusRestart(audioCode:any){
+        const connection = await connectDb();
+
+        try {
+            await connection.connect();
+            await connection.query("update audios set delivered = FALSE, status = 10 where audio_code = $1", [audioCode])
+            console.log("Audio restarted")
+        } catch (error) {
+            console.error(error)
+        } finally {
+            await connection.end()
+        }
+    }
+
+    public async SetVoiceMailAudio(audioCode:any){
+        const connection = await connectDb();
+        try {
+            await connection.connect()
+            await connection.query("update conversations set labeled_speaker = 'BUZON' where audio_code = $1", [audioCode])
+        } catch (error) {
+            console.error(error)
+        } finally {
+            await connection.end()
+        }
+    }
+
 }
