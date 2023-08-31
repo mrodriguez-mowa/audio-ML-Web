@@ -34,8 +34,7 @@ const SignUp = ({ changeForm }: ISignUp) => {
     const handleSubmit =  async (e: any) => {
         e.preventDefault()
 
-
-        const res =  await axios.post('/api/auth/sign-up', data)
+        const res =  await axios.post('/api/mongo/auth/sign-up', data)
         
         const { created,message } = res.data
 
@@ -45,11 +44,6 @@ const SignUp = ({ changeForm }: ISignUp) => {
         } else {
             toast.warning(message)
         }
-        
-
-
-
-
     }
 
 
