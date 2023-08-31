@@ -5,7 +5,10 @@ export const Audio = mongoose.models.Audio ?? mongoose.model("Audio", new Schema
     audioName: String,
     // classifiedBy: String, // Reference to User ID
     status: Number,
-    classifiedAt: Date
+    classifiedAt: {
+        type: Date,
+
+    }
 }))
 
 export const ClassificationDetail = mongoose.models.ClassificationDetail ?? mongoose.model("ClassificationDetail", new Schema({
@@ -33,8 +36,8 @@ export const User =mongoose.models.User ?? mongoose.model("User", new Schema({
     firstName: String,
     lastName: String,
     createdAt: {
-        type: Number,
-        default: now()
+        type: Date,
+        default: new Date()
     },
     isAdmin: {
         type: Boolean,
