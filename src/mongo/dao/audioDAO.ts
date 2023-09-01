@@ -28,6 +28,14 @@ export class AudioDAOMongo {
             $sample: {
               size: 1
             }
+          },
+          {
+            $lookup: {
+              from: "conversations",
+              localField: "_id",
+              foreignField: "audioId",
+              as: "audioConversation"
+            }
           }
         ])
 
