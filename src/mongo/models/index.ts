@@ -1,33 +1,41 @@
 import { now } from "moment";
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 export const Audio = mongoose.models.Audio ?? mongoose.model("Audio", new Schema({
     audioName: String,
-    // classifiedBy: String, // Reference to User ID
-    status: Number,
+    length: Number,
+    status: {
+        type: Number,
+        default: 0
+    },
+    sentTo: {
+        type: [String] // USER ID
+    },
     classifiedAt: {
         type: Date,
-
+        default: new Date()
     }
 }))
 
 export const ClassificationDetail = mongoose.models.ClassificationDetail ?? mongoose.model("ClassificationDetail", new Schema({
     classifiedBy: String,
     newLabel: String,
-    classifiedAt: Date
+    classifiedAt: {
+        type: Date,
+        default: new Date()
+    }
 }))
 
 export const Conversation = mongoose.models.Conversation ?? mongoose.model("Conversation", new Schema({
     audioId: String,
     originalSpeaker: String,
     message: String,
-    
     labeledTranscriptions: {
         type: [ClassificationDetail.schema]
     }
 }))
 
-export const User =mongoose.models.User ?? mongoose.model("User", new Schema({
+export const User = mongoose.models.User ?? mongoose.model("User", new Schema({
     username: {
         type: String,
         unique: true
