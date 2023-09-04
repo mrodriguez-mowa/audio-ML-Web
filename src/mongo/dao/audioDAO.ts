@@ -174,4 +174,15 @@ export class AudioDAOMongo {
       throw new Error("Error removing userID from audio")
     }
   }
+
+  public async GetAudioReportByUser(userId: any){
+    try {
+      await connectMongoDB()
+      const res = await Conversation.find({
+        
+      })
+    } catch (error) {
+      
+    }
+  }
 }
