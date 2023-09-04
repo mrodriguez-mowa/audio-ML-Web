@@ -62,6 +62,8 @@ const Home: NextPage = () => {
       setCurrentId(audioId)
       setConvx(dataz.data)
 
+      localStorage.setItem("audio_code", audioId)
+
       const convInitialState = dataz.data[0].audioConversation.map((el:any) => {
         return {
           conversationId: el._id,
@@ -103,7 +105,7 @@ const Home: NextPage = () => {
     const userId = localStorage.getItem("userId")
 
     await axios.post("/api/audios/classify-audio", { textSpeaker, userId, currentId })
-    getAudioDetails(null)
+    getAudioDetailsMongo(null)
   }
 
   const handleSubmitMongo = async () => {
@@ -120,7 +122,7 @@ const Home: NextPage = () => {
 
         <Header title='Hola' />
         <>
-          {convx[0]?.audioName ? <AudioPlayer audioId={() => { getAudioDetails(null) }} audioCode={convx[0]._id} audio={convx[0].audioName} /> : <TailwindLoader />}
+          {convx[0]?.audioName ? <AudioPlayer audioId={() => { getAudioDetailsMongo(null) }} audioCode={convx[0]._id} audio={convx[0].audioName} /> : <TailwindLoader />}
         </>
 
         <div>

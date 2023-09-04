@@ -14,10 +14,10 @@ export class UserDAOMongo {
     
     // TODO: Generate an interface for this
     public async LoginUser({username, password}:{username: string, password: string}):Promise<any> {
-        
+        let success = false
         try {
             await connectMongoDB()
-            let success = false
+            
             const foundClient = await User.findOne({
                 username
             })

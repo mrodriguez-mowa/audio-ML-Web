@@ -4,11 +4,11 @@ import { AudioDAOMongo } from "../../../../src/mongo/dao/audioDAO";
 export default async function handler(req: NextApiRequest, res: NextApiResponse){
     
     if (req.method == 'POST') {
-        const {audioId, userId} = req.body
+        const {audioId, userID} = req.body
         
         const audioMongoDAO = new AudioDAOMongo()
 
-        const audio = await audioMongoDAO.GetAudio({audioId, userId})
+        const audio = await audioMongoDAO.GetAudio({audioId, userId:userID})
 
         return res.send(audio)
     }

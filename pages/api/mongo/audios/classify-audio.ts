@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // VALIDAR FORMULARIO
     if (req.method == 'POST'){
-        const {textSpeaker, userID, currentId}  = req.body
+        const {textSpeaker, userID}  = req.body
 
         // console.log(req.body)
 
