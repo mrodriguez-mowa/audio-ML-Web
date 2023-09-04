@@ -11,10 +11,12 @@ interface IUserMongo {
 }
 
 export class UserDAOMongo {
-    
+
     // TODO: Generate an interface for this
-    public async LoginUser({username, password}:{username: string, password: string}):Promise<any> {
-        
+    public async LoginUser({ username, password }: { username: string, password: string }): Promise<any> {
+
+        let success = false;
+
         try {
             await connectMongoDB()
 
@@ -22,24 +24,37 @@ export class UserDAOMongo {
                 username
             })
 
-            const isValid = await comparePassword({password, hash: foundClient.password})
 
-            return {
-                isLogged: isValid,
-                userId: foundClient._id.toString(),
-                userName: foundClient.username,
-                isAdmin: foundClient.isAdmin
+
+            if (foundClient) {
+
+                const isValid = await comparePassword({ password, hash: foundClient.password })
+
+                if (isValid) {
+                    success = true
+                    return {
+                        isLogged: isValid,
+                        userId: foundClient._id.toString(),
+                        userName: foundClient.username,
+                        isAdmin: foundClient.isAdmin
+                    }
+                }
+
             }
 
         } catch (error) {
             console.log(error)
         }
 
+        return {
+            isLogged: success
+        };
+
     }
 
     public async RegisterUser({
         username, password, firstName, lastName
-    }:IUserMongo): Promise<any>  {
+    }: IUserMongo): Promise<any> {
         try {
             await connectMongoDB()
 

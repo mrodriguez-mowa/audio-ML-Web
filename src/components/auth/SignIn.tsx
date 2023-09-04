@@ -61,22 +61,30 @@ const SignIn = ({ changeForm }: ISignIn) => {
                 autoClose: 1000,
             });
 
-            dispatch(
-                signInResult({
-                    isAdmin: res.data.isAdmin,
-                    user: res.data.userName,
-                    userId: res.data.userId,
-                    isAuth: res.data.isLogged,
-                })
-            );
+            console.log(res.data)
 
-            dispatch(authLocalStorage())
+            if(res.data.isLogged){
+                dispatch(
+                    signInResult({
+                        isAdmin: res.data.isAdmin,
+                        user: res.data.userName,
+                        userId: res.data.userId,
+                        isAuth: res.data.isLogged,
+                    })
+                );
+    
+                dispatch(authLocalStorage())
+                
+                setTimeout(() => {
+                    if (res.data.isLogged) {
+                        push("/");
+                    }
+                }, 1000);
+            }
 
-            setTimeout(() => {
-                if (res.data.isLogged) {
-                    push("/");
-                }
-            }, 1000);
+            
+
+            
         }, 1000);
     };
 

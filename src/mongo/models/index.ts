@@ -1,7 +1,9 @@
 import { now } from "moment";
 import mongoose, { Schema } from "mongoose";
 
-export const Audio = mongoose.models.Audio ?? mongoose.model("Audio", new Schema({
+const ObjectId = mongoose.Types.ObjectId
+
+export const Audio = mongoose.models.Audio ?? mongoose.model("Audio", new mongoose.Schema({
     audioName: String,
     length: Number,
     status: {
@@ -9,15 +11,15 @@ export const Audio = mongoose.models.Audio ?? mongoose.model("Audio", new Schema
         default: 0
     },
     sentTo: {
-        type: [String] // USER ID
-    },
+        type: [ObjectId] // USER ID
+    } ,
     classifiedAt: {
         type: Date,
         default: new Date()
     }
 }))
 
-export const ClassificationDetail = mongoose.models.ClassificationDetail ?? mongoose.model("ClassificationDetail", new Schema({
+export const ClassificationDetail = mongoose.models.ClassificationDetail ?? mongoose.model("ClassificationDetail", new mongoose.Schema({
     classifiedBy: String,
     newLabel: String,
     classifiedAt: {
@@ -26,8 +28,8 @@ export const ClassificationDetail = mongoose.models.ClassificationDetail ?? mong
     }
 }))
 
-export const Conversation = mongoose.models.Conversation ?? mongoose.model("Conversation", new Schema({
-    audioId: String,
+export const Conversation = mongoose.models.Conversation ?? mongoose.model("Conversation", new mongoose.Schema({
+    audioId: ObjectId,
     originalSpeaker: String,
     message: String,
     labeledTranscriptions: {
