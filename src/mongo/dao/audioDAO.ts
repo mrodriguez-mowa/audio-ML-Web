@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { connectMongoDB } from "../connection/mongoConnection";
-import { Audio } from "../models";
+import { Audio, ClassificationDetail, Conversation } from "../models";
 
 interface IGetAudio {
   audioId: any
@@ -20,8 +20,7 @@ export class AudioDAOMongo {
             $match: {
               sentTo: {
                 $nin: [userId]
-              },
-              _id: new ObjectId("64f1fe3d46a7eaaf0dc997e8")
+              }
             }
           },
           {
@@ -39,13 +38,30 @@ export class AudioDAOMongo {
           }
         ])
 
+        try {
+          const result = await Audio.findByIdAndUpdate(new ObjectId(res[0]._id), {
+            $push: {
+              sentTo: userId
+            }
+          });
+        
+          if (!result) {
+            // Handle the case where no document was found for the given audioId
+            console.error('Audio not found.');
+          } else {
+            console.log('Update successful.');
+          }
+        } catch (error) {
+          // Handle any errors that occurred during the update
+          console.error('Error updating audio.');
+        }
+
         return res
 
       } else {
         console.log("Valid Audio ID re importing data")
         // const audioConversations = await Audio.findById(id)
-        
-
+      
         const res = await Audio.aggregate([
           {
             $match: {
@@ -71,8 +87,33 @@ export class AudioDAOMongo {
     }
   }
 
+  public async UpdateSpeakerLabel({agentSpeaker, clientSpeaker}:any){
+    try {
+      await connectMongoDB()
+      const classificationAgent = agentSpeaker.map((el:any)=>{
+        return {
+          classifiedBy: el.userID,
+          newLabel: 1
+        }
+      })
 
-  public async GetRandomAudioId(): Promise<Number> {
-    return 1
+      const classificationClient = clientSpeaker.map((el:any)=>{
+        return {
+          classifiedBy: el.userID,
+          newLabel: 2
+        }
+      })
+
+      const classifications = classificationAgent.concat(classificationClient)
+
+      await ClassificationDetail.insertMany(classifications)
+      console.log("Classification inserted")
+
+    } catch (error) {
+      console.error(error)
+      throw new Error("Couldn't update conversations")
+    }
   }
+
+
 }

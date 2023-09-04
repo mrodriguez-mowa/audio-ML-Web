@@ -11,15 +11,13 @@ interface IUserMongo {
 }
 
 export class UserDAOMongo {
-
+    
     // TODO: Generate an interface for this
-    public async LoginUser({ username, password }: { username: string, password: string }): Promise<any> {
-
-        let success = false;
-
+    public async LoginUser({username, password}:{username: string, password: string}):Promise<any> {
+        
         try {
             await connectMongoDB()
-
+            let success = false
             const foundClient = await User.findOne({
                 username
             })
@@ -54,7 +52,7 @@ export class UserDAOMongo {
 
     public async RegisterUser({
         username, password, firstName, lastName
-    }: IUserMongo): Promise<any> {
+    }:IUserMongo): Promise<any>  {
         try {
             await connectMongoDB()
 
