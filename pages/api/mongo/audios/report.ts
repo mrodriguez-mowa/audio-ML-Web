@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const audioInstance = new AudioDAOMongo()
 
-        const audioDetails = await audioInstance.AudiosReportByUser(id)
+        const audioDetails = await audioInstance.GetAudioReportByUser(id)
         
         return res.send(audioDetails)
         

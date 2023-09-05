@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { connectMongoDB } from "../connection/mongoConnection";
-import { Audio, ClassificationDetail, Conversation } from "../models";
+import { Audio, ClassificationDetail, Conversation, User } from "../models";
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -91,25 +91,25 @@ export class AudioDAOMongo {
     }
   }
 
-  public async UpdateSpeakerLabel({ agentSpeaker, clientSpeaker }: any) {
+  public async UpdateSpeakerLabel({ agentSpeaker, clientSpeaker, audioId }: any) {
     try {
       await connectMongoDB();
-      console.log(agentSpeaker[0]);
 
       const classificationAgent = agentSpeaker.map((el: any) => {
         return {
           conversationId: new ObjectId(el.conversationId),
           classifiedBy: el.userID,
+          audioId,
           newLabel: 1,
         };
       });
 
-      console.log(classificationAgent);
 
       const classificationClient = clientSpeaker.map((el: any) => {
         return {
           conversationId: new ObjectId(el.conversationId),
           classifiedBy: el.userID,
+          audioId,
           newLabel: 2,
         };
       });
@@ -178,11 +178,62 @@ export class AudioDAOMongo {
   public async GetAudioReportByUser(userId: any){
     try {
       await connectMongoDB()
-      const res = await Conversation.find({
-        
-      })
-    } catch (error) {
+      const res = await ClassificationDetail.find({
+        classifiedBy: new ObjectId(userId)
+      }).distinct("audioId").count()
       
+      // console.log(res, "RES COUNT")
+
+      // JOIN USERS AND CLASSIFICATIONS
+
+      /*
+      const values = {
+                classified_today: audioReport.rows[0].classified_today,
+                classified_total: audioReport.rows[0].classified_total,
+                classified_four_days: audioReport.rows[0].last_four_days,
+                daily_goal: userData.rows[0].daily_goal,
+                name: userData.rows[0].name,
+                lastname: userData.rows[0].last_name
+            }
+      
+      */
+
+      const data = await ClassificationDetail.aggregate([
+        {
+          $match: {
+            classifiedBy: new ObjectId(userId)
+          }
+        },
+        {
+          $lookup: {
+            from: "users",
+              localField: "classifiedBy",
+              foreignField: "_id",
+              as: "userDetails",
+          }
+        }
+      ])
+
+      const datax = await User.aggregate([
+        {
+          $match: {
+            _id: new ObjectId(userId)
+          }
+        },
+        {
+          $lookup: {
+            from: "classificationdetails",
+            localField: "_id",
+            foreignField: "classifiedBy",
+            as: "classificationList"
+          }
+        }
+      ]);
+      
+    return datax
+
+    } catch (error) {
+      console.log("error getting report for user")
     }
   }
 }

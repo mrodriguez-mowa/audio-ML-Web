@@ -6,9 +6,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // VALIDAR FORMULARIO
     if (req.method == 'POST'){
-        const {textSpeaker, userID}  = req.body
+        const {textSpeaker, userID, currentId}  = req.body
 
-        // console.log(req.body)
+        console.log(currentId, "currentID")
 
         // SEPARAR POR SPEAKER LABEL
         const agentSpeaker = textSpeaker.filter((el:any) => el.speakerLabel == 1).map((el:any) => {return {
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const audioDAO = new AudioDAOMongo()
 
-        await audioDAO.UpdateSpeakerLabel({agentSpeaker, clientSpeaker})
+        await audioDAO.UpdateSpeakerLabel({agentSpeaker, clientSpeaker, audioId: currentId})
 
         return res.send(res.statusCode)
     }

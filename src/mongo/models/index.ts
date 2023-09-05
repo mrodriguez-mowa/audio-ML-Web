@@ -23,6 +23,11 @@ export const ClassificationDetail = mongoose.models.ClassificationDetail ?? mong
     conversationId: ObjectId,
     classifiedBy: ObjectId,
     newLabel: String,
+    audioId: {
+        type: ObjectId,
+        required: true,
+        index: true
+    },
     classifiedAt: {
         type: Date,
         default: new Date()
