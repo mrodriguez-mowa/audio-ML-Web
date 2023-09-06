@@ -31,9 +31,13 @@ const Home: NextPage = () => {
   }, [])
 
   const getAudioDetails = (param: any) => {
-
-    axios.get(`/api/audios/get-audio?id=${param}`)
+    console.log("param fn", param)
+    axios.post(`/api/audios/get-audio`, {
+      id: param,
+      userID
+    })
       .then((datax) => {
+        // console.log(datax)
         setConvx(datax.data)
         const audio_code = datax.data[0].audio_code
 
@@ -42,11 +46,12 @@ const Home: NextPage = () => {
 
         const convStatus = datax.data.map((element: any) => {
           return {
-            conversationId: element.conversation_id,
+            conversationId: element.id,
             speakerLabel: 1,
             text: element.message
           }
         })
+        // console.log(convStatus)
         setTextSpeaker(convStatus)
       }).catch((err) => {
         console.log(err)
@@ -83,7 +88,7 @@ const Home: NextPage = () => {
 
     // getAudioDetails(audioCode)
 
-    getAudioDetailsMongo(audioCode)
+    getAudioDetails(audioCode)
 
   }, [])
 
@@ -105,7 +110,7 @@ const Home: NextPage = () => {
     const userId = localStorage.getItem("userId")
 
     await axios.post("/api/audios/classify-audio", { textSpeaker, userId, currentId })
-    getAudioDetailsMongo(null)
+    getAudioDetails(null)
   }
 
   const handleSubmitMongo = async () => {
@@ -113,8 +118,10 @@ const Home: NextPage = () => {
     console.log(userID)
 
     await axios.post("/api/mongo/audios/classify-audio", { textSpeaker, userID, currentId })
-    getAudioDetailsMongo(null)
+    getAudioDetails(null)
   }
+
+  console.log(convx[0])
 
   return (
     <Layout>
@@ -122,18 +129,18 @@ const Home: NextPage = () => {
 
         <Header title='Hola' />
         <>
-          {convx[0]?.audioName ? <AudioPlayer audioId={() => { getAudioDetailsMongo(null) }} audioCode={convx[0]._id} audio={convx[0].audioName} /> : <TailwindLoader />}
+          {convx[0]?.audio_name ? <AudioPlayer audioId={() => { getAudioDetails(null) }} audioCode={convx[0].audio_code} audio={convx[0].audio_name} /> : <TailwindLoader />}
         </>
 
         <div>
-          {convx[0]?.audioConversation.map((datax: any, idx: number) => {
+          {convx.map((datax: any, idx: number) => {
             return <div key={idx + "convo"}>
               <div className='text-center my-2 md:w-5/12 text-dark-primary rounded-md py-1 bg-white w-10/12 mx-auto' >
                 {datax.message}
               </div>
 
               <div className='flex mx-auto  items-center justify-between'>
-                <RadioButton handleChange={handleOnChange} conversationId={datax._id} />
+                <RadioButton handleChange={handleOnChange} conversationId={datax.id} />
               </div>
 
             </div>

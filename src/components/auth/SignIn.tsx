@@ -50,7 +50,7 @@ const SignIn = ({ changeForm }: ISignIn) => {
         });
 
         setTimeout(async () => {
-            const res = await axios.post("/api/mongo/auth/sign-in", data);
+            const res = await axios.post("/api/auth/sign-in", data);
 
             toast.update("loginToast", {
                 type: res.data.isLogged ? "success" : "warning",

@@ -2,7 +2,7 @@ import connectDb from "../../database/connection";
 
 export class AudioDAO {
 
-    public async GetAudio(id: any) {
+    public async GetAudio({id, userID}:any) {
         const connection = await connectDb()
 
         try {
@@ -11,22 +11,24 @@ export class AudioDAO {
 
             let res
 
-            if (id != "null") {
+            if (id != null) {
                 console.log("valid audio id")
-                res = await connection.query(`select a.audio_code, a.audio_name, c.message, c.conversation_id from audios a  
-                join conversations c on c.audio_code  = a.audio_code where a.audio_code = $1 order by conversation_id asc`, [id])
+                res = await connection.query(`select a.audio_code, a.audio_name, c.message, c.id from audios_nlp a  
+                join conversations_nlp c on c.audio_code  = a.audio_code where a.audio_code = $1 order by c.id asc`, [id])
 
             } else {
                 console.log("null id")
-                const randomId = await this.GetRandomAudioId()
+                const randomId = await this.GetRandomAudioId(userID)
 
                 console.log("Random ID", randomId)
-                res = await connection.query(`select a.audio_code, a.audio_name, c.message, c.conversation_id from audios a  
-                join conversations c on c.audio_code  = a.audio_code where a.audio_code = $1 order by conversation_id asc`, [randomId])
+                res = await connection.query(`select a.audio_code, a.audio_name, c.message, c.id from audios_nlp a  
+                join conversations_nlp c on c.audio_code  = a.audio_code where a.audio_code = $1 order by c.id asc`, [randomId])
 
-                await this.UpdateDeliveredStatus(randomId)
+                await this.UpdateDeliveredStatus({audioId: randomId, userID})
 
             }
+            
+            console.log(res.rows)
 
             return res.rows
 
@@ -37,22 +39,22 @@ export class AudioDAO {
         }
     }
 
-    public async GetRandomAudioId(): Promise<string> {
+    public async GetRandomAudioId(userID:any): Promise<string> {
 
         const connection = await connectDb()
-
+        console.log("RECEIVED USER ID", userID)
         let randomId = ""
 
         try {
             await connection.connect()
 
             const randomIdRes = await connection.query(`
-                SELECT audio_code
-                FROM audios
-                
+                SELECT a.audio_code
+                FROM audios_nlp a
+                WHERE not ($1 = ANY (a.sent_to))
                 ORDER BY RANDOM()
                 LIMIT 1;
-            `)
+            `, [userID])
 
 
             randomId = randomIdRes.rows[0].audio_code
@@ -66,12 +68,12 @@ export class AudioDAO {
         return randomId
     }
 
-    public async UpdateDeliveredStatus(audioId: string) {
+    public async UpdateDeliveredStatus({audioId, userID}:any) {
         const connection = await connectDb()
         try {
             await connection.connect()
 
-            await connection.query("update audios set delivered = true where audio_code = $1", [audioId])
+            await connection.query("update audios_nlp set sent_to = array_append(sent_to, $2) where audio_code = $1", [audioId, userID])
             console.log("UPDATED!")
         } catch (error) {
             console.log("Error updating delivered field", error)
@@ -220,12 +222,12 @@ export class AudioDAO {
         }
     }
 
-    public async UpdateStatusRestart(audioCode:any){
+    public async UpdateStatusRestart({audioCode, userID}:any){
         const connection = await connectDb();
-
+        console.log("audio to skip", audioCode)
         try {
             await connection.connect();
-            await connection.query("update audios set delivered = FALSE, status = 10 where audio_code = $1", [audioCode])
+            await connection.query("update audios_nlp set sent_to = array_remove(sent_to, $2) where audio_code = $1", [audioCode, userID])
             console.log("Audio restarted")
         } catch (error) {
             console.error(error)
@@ -235,10 +237,12 @@ export class AudioDAO {
     }
 
     public async SetVoiceMailAudio(audioCode:any){
+        console.log("AUDIO UPDATE BUZON", audioCode)
         const connection = await connectDb();
         try {
             await connection.connect()
-            await connection.query("update conversations set labeled_speaker = 'BUZON' where audio_code = $1", [audioCode])
+            await connection.query("update conversations_nlp set final_label = 'BUZON' where audio_code = $1", [audioCode])
+            console.log("Audio updated to BUZON")
         } catch (error) {
             console.error(error)
         } finally {
