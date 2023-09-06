@@ -91,7 +91,11 @@ export class AudioDAOMongo {
     }
   }
 
-  public async UpdateSpeakerLabel({ agentSpeaker, clientSpeaker, audioId }: any) {
+  public async UpdateSpeakerLabel({
+    agentSpeaker,
+    clientSpeaker,
+    audioId,
+  }: any) {
     try {
       await connectMongoDB();
 
@@ -103,7 +107,6 @@ export class AudioDAOMongo {
           newLabel: 1,
         };
       });
-
 
       const classificationClient = clientSpeaker.map((el: any) => {
         return {
@@ -145,46 +148,37 @@ export class AudioDAOMongo {
       }
     } catch (error) {
       console.log("Couldn't update voice mail");
-      throw new Error("Couldn't update voice mail")
+      throw new Error("Couldn't update voice mail");
     }
   }
 
   public async SkipAudioForUser({ userId, audioId }: IGetAudio) {
     try {
-      await connectMongoDB()
-      console.log(`userId: ${userId}, audioId: ${audioId}`)
+      await connectMongoDB();
+      console.log(`userId: ${userId}, audioId: ${audioId}`);
       try {
         const res = await Audio.findByIdAndUpdate(new ObjectId(audioId), {
           $pull: {
-            sentTo: new ObjectId(userId)
-          }
-        })
+            sentTo: new ObjectId(userId),
+          },
+        });
         if (res) {
-          console.log("Audio updated and userID removed")
+          console.log("Audio updated and userID removed");
         } else {
-          console.log("Audio not found to remove userID")
+          console.log("Audio not found to remove userID");
         }
       } catch (error) {
-        console.log("Couldn't remove userID from audio array")
+        console.log("Couldn't remove userID from audio array");
       }
-
-
     } catch (error) {
-      console.log("Error removing userID from audio")
-      throw new Error("Error removing userID from audio")
+      console.log("Error removing userID from audio");
+      throw new Error("Error removing userID from audio");
     }
   }
 
-  public async GetAudioReportByUser(userId: any){
+  public async GetAudioReportByUser(userId: any) {
     try {
-      await connectMongoDB()
-      const res = await ClassificationDetail.find({
-        classifiedBy: new ObjectId(userId)
-      }).distinct("audioId").count()
-      
-      // console.log(res, "RES COUNT")
-
-      // JOIN USERS AND CLASSIFICATIONS
+      await connectMongoDB();
 
       /*
       const values = {
@@ -198,42 +192,162 @@ export class AudioDAOMongo {
       
       */
 
-      const data = await ClassificationDetail.aggregate([
-        {
-          $match: {
-            classifiedBy: new ObjectId(userId)
-          }
-        },
-        {
-          $lookup: {
-            from: "users",
-              localField: "classifiedBy",
-              foreignField: "_id",
-              as: "userDetails",
-          }
-        }
-      ])
-
       const datax = await User.aggregate([
         {
           $match: {
-            _id: new ObjectId(userId)
-          }
+            _id: new ObjectId(userId),
+          },
         },
         {
           $lookup: {
             from: "classificationdetails",
             localField: "_id",
             foreignField: "classifiedBy",
-            as: "classificationList"
-          }
+            as: "classifications",
+          },
+        },
+        {
+          $unwind: "$classifications",
+        },
+        {
+          $group: {
+            _id: null,
+            uniqueAudiosIdsToday: {
+              $addToSet: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $gte: [
+                          "$classifications.classifiedAt",
+                          {
+                            $dateFromString: {
+                              dateString: {
+                                $dateToString: {
+                                  format: "%Y-%m-%d",
+                                  date: new Date(),
+                                },
+                              },
+                            },
+                          },
+                        ],
+                      },
+                      {
+                        $lt: [
+                          "$classifications.classifiedAt",
+                          {
+                            $add: [
+                              {
+                                $dateFromString: {
+                                  dateString: {
+                                    $dateToString: {
+                                      format: "%Y-%m-%d",
+                                      date: new Date(),
+                                    },
+                                  },
+                                },
+                              },
+                              1 * 24 * 60 * 60 * 1000, // Add 1 day in milliseconds
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  "$classifications.audioId", // Include audioId if it meets the condition
+                  null,
+                ],
+              },
+            },
+            uniqueAudiosIdsLast4Days: {
+              $addToSet: {
+                $cond: [
+                  {
+                    $and: [
+                      {
+                        $gte: [
+                          "$classifications.classifiedAt",
+                          {
+                            $subtract: [
+                              new Date(),
+                              4 * 24 * 60 * 60 * 1000, // Subtract 4 days in milliseconds
+                            ],
+                          },
+                        ],
+                      },
+                      {
+                        $lt: [
+                          "$classifications.classifiedAt",
+                          {
+                            $add: [
+                              {
+                                $dateFromString: {
+                                  dateString: {
+                                    $dateToString: {
+                                      format: "%Y-%m-%d",
+                                      date: new Date(),
+                                    },
+                                  },
+                                },
+                              },
+                              1 * 24 * 60 * 60 * 1000, // Add 1 day in milliseconds
+                            ]
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  "$classifications.audioId", // Include audioId if it meets the condition
+                  null,
+                ],
+              },
+            },
+            allUniqueAudiosIds: {
+              $addToSet: "$classifications.audioId", // Collect all unique audioIds
+            },
+            user: {
+              $first: "$$ROOT",
+            },
+          },
+        },
+        {
+          $project: {
+            today: 1,
+            last4Days: 1,
+            uniqueAudiosIdsToday: {
+              $filter: {
+                input: "$uniqueAudiosIdsToday",
+                as: "audioId",
+                cond: { $ne: ["$$audioId", null] },
+              },
+            },
+            uniqueAudiosIdsLast4Days: {
+              $filter: {
+                input: "$uniqueAudiosIdsLast4Days",
+                as: "audioId",
+                cond: { $ne: ["$$audioId", null] },
+              },
+            },
+            allUniqueAudiosIds: 1,
+            user: 1,
+          },
         }
       ]);
       
-    return datax
+      // Now, datax will contain the user data, counts of records for today and last 4 days, and the unique audioIds for today and last 4 days
+      
+      const response = {
+        classified_today: datax[0].uniqueAudiosIdsToday.length,
+        classified_total: datax[0].allUniqueAudiosIds.length, //todo,
+        classified_four_days: datax[0].uniqueAudiosIdsLast4Days.length,
+        daily_goal: datax[0].user.dailyGoal,
+        name: datax[0].user.firstName,
+        lastname: datax[0].user.lastName
+      }
 
+      return response;
     } catch (error) {
-      console.log("error getting report for user")
+      console.log(error);
     }
   }
 }
