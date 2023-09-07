@@ -28,7 +28,7 @@ export class AudioDAO {
 
             }
             
-            console.log(res.rows)
+            // console.log(res.rows)
 
             return res.rows
 
@@ -43,21 +43,21 @@ export class AudioDAO {
 
         const connection = await connectDb()
         console.log("RECEIVED USER ID", userID)
-        let randomId = ""
+        let randomId
 
         try {
             await connection.connect()
 
             const randomIdRes = await connection.query(`
-                SELECT a.audio_code
+                SELECT a.audio_code, sent_to
                 FROM audios_nlp a
-                WHERE not ($1 = ANY (a.sent_to))
                 ORDER BY RANDOM()
-                LIMIT 1;
-            `, [userID])
+            `)
 
+            randomId = randomIdRes.rows.filter((el)=>!el.sentTo?.find.includes(userID))
 
-            randomId = randomIdRes.rows[0].audio_code
+            console.log(randomId)
+            //randomId = randomIdRes.rows[0].audio_code
 
         } catch (error) {
             console.error(error)
@@ -65,7 +65,7 @@ export class AudioDAO {
             await connection.end()
         }
 
-        return randomId
+        return "randomId"
     }
 
     public async UpdateDeliveredStatus({audioId, userID}:any) {
