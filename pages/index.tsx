@@ -96,6 +96,7 @@ const Home: NextPage = () => {
 
     const idx = textSpeaker.findIndex((el: any) => el.conversationId == conversationId)
 
+    console.log(textSpeaker, "textspeaker")
 
     const newStateArray = [...textSpeaker]
 
@@ -121,7 +122,7 @@ const Home: NextPage = () => {
     getAudioDetails(null)
   }
 
-  console.log(convx[0])
+
 
   return (
     <Layout>
@@ -149,7 +150,7 @@ const Home: NextPage = () => {
 
         <div className='container mx-auto my-16 text-center'>
           <button onClick={() => {
-            handleSubmitMongo()
+            handleSubmit()
           }} className='bg-sky-400 px-16 py-2 text-sky-900 font-semibold rounded-lg'>Siguiente</button>
         </div>
 

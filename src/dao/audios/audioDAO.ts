@@ -54,18 +54,17 @@ export class AudioDAO {
                 ORDER BY RANDOM()
             `)
 
-            randomId = randomIdRes.rows.filter((el)=>!el.sentTo?.find.includes(userID))
-
-            console.log(randomId)
-            //randomId = randomIdRes.rows[0].audio_code
-
+            randomId = randomIdRes.rows.filter((el) => !el.sent_to || !el.sent_to.includes(userID))
+            
+            const randomSelected = Math.floor(Math.random()*(randomId.length - 0 + 1) + 1)
+            randomId = randomId[randomSelected].audio_code
         } catch (error) {
             console.error(error)
         } finally {
             await connection.end()
         }
 
-        return "randomId"
+        return randomId
     }
 
     public async UpdateDeliveredStatus({audioId, userID}:any) {
@@ -83,7 +82,9 @@ export class AudioDAO {
     }
 
     public async UpdateSpeakerLabel({ agentSpeaker, clientSpeaker, currentId, userId }: any) {
-        // console.log(agentSpeaker, clientSpeaker, currentId, userId )
+        console.log(agentSpeaker, clientSpeaker, currentId, userId )
+        
+        /*
         const connection = await connectDb()
         try {
             await connection.connect()
@@ -106,6 +107,41 @@ export class AudioDAO {
         } finally {
             await connection.end()
         }
+        */
+
+        const connection = await connectDb()
+
+        try {
+            await connection.connect()
+            // INSERT ALL THE AGENTS CLASSIFICATIONS
+            
+            if (agentSpeaker.length > 0) {
+                await Promise.all(agentSpeaker.map(async(convId:any)=>{
+                    await connection.query(`
+                        INSERT INTO classification_details (conversation_id, classified_by, audio_code, new_label) values ($1, $2, $3, $4)
+                    `, [convId, userId, currentId, "AGENTE"])
+                }))
+            }
+            
+            // INSERT ALL THE CLIENTS CLASSIFICATIONS
+            
+            if (clientSpeaker.length > 0) {
+                await Promise.all(clientSpeaker.map(async(convId:any)=>{
+                    await connection.query(`
+                    INSERT INTO classification_details (conversation_id, classified_by, audio_code, new_label) values ($1, $2, $3, $4)
+                    `, [convId, userId, currentId, "CLIENTE"])
+                }))
+            }
+            
+
+
+
+        } catch (error) {
+            console.log("Error updating agent field", error)
+        } finally {
+            await connection.end()
+        }
+        
     }
 
     public async AudiosReportByUser(userId: any) {
