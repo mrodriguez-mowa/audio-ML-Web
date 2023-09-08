@@ -2,7 +2,7 @@ import connectDb from "../../database/connection";
 
 export class AudioDAO {
 
-    public async GetAudio({id, userID}:any) {
+    public async GetAudio({ id, userID }: any) {
         const connection = await connectDb()
 
         try {
@@ -24,10 +24,10 @@ export class AudioDAO {
                 res = await connection.query(`select a.audio_code, a.audio_name, c.message, c.id from audios_nlp a  
                 join conversations_nlp c on c.audio_code  = a.audio_code where a.audio_code = $1 order by c.id asc`, [randomId])
 
-                await this.UpdateDeliveredStatus({audioId: randomId, userID})
+                await this.UpdateDeliveredStatus({ audioId: randomId, userID })
 
             }
-            
+
             // console.log(res.rows)
 
             return res.rows
@@ -39,7 +39,7 @@ export class AudioDAO {
         }
     }
 
-    public async GetRandomAudioId(userID:any): Promise<string> {
+    public async GetRandomAudioId(userID: any): Promise<string> {
 
         const connection = await connectDb()
         console.log("RECEIVED USER ID", userID)
@@ -55,8 +55,8 @@ export class AudioDAO {
             `)
 
             randomId = randomIdRes.rows.filter((el) => !el.sent_to || !el.sent_to.includes(userID))
-            
-            const randomSelected = Math.floor(Math.random()*(randomId.length - 0 + 1) + 1)
+
+            const randomSelected = Math.floor(Math.random() * (randomId.length - 0 + 1) + 1)
             randomId = randomId[randomSelected].audio_code
         } catch (error) {
             console.error(error)
@@ -67,7 +67,7 @@ export class AudioDAO {
         return randomId
     }
 
-    public async UpdateDeliveredStatus({audioId, userID}:any) {
+    public async UpdateDeliveredStatus({ audioId, userID }: any) {
         const connection = await connectDb()
         try {
             await connection.connect()
@@ -82,8 +82,8 @@ export class AudioDAO {
     }
 
     public async UpdateSpeakerLabel({ agentSpeaker, clientSpeaker, currentId, userId }: any) {
-        console.log(agentSpeaker, clientSpeaker, currentId, userId )
-        
+        console.log(agentSpeaker, clientSpeaker, currentId, userId)
+
         /*
         const connection = await connectDb()
         try {
@@ -114,25 +114,25 @@ export class AudioDAO {
         try {
             await connection.connect()
             // INSERT ALL THE AGENTS CLASSIFICATIONS
-            
+
             if (agentSpeaker.length > 0) {
-                await Promise.all(agentSpeaker.map(async(convId:any)=>{
+                await Promise.all(agentSpeaker.map(async (convId: any) => {
                     await connection.query(`
                         INSERT INTO classification_details (conversation_id, classified_by, audio_code, new_label) values ($1, $2, $3, $4)
                     `, [convId, userId, currentId, "AGENTE"])
                 }))
             }
-            
+
             // INSERT ALL THE CLIENTS CLASSIFICATIONS
-            
+
             if (clientSpeaker.length > 0) {
-                await Promise.all(clientSpeaker.map(async(convId:any)=>{
+                await Promise.all(clientSpeaker.map(async (convId: any) => {
                     await connection.query(`
                     INSERT INTO classification_details (conversation_id, classified_by, audio_code, new_label) values ($1, $2, $3, $4)
                     `, [convId, userId, currentId, "CLIENTE"])
                 }))
             }
-            
+
 
 
 
@@ -141,7 +141,7 @@ export class AudioDAO {
         } finally {
             await connection.end()
         }
-        
+
     }
 
     public async AudiosReportByUser(userId: any) {
@@ -152,9 +152,36 @@ export class AudioDAO {
             const userData = await connection.query('select u.name, u.last_name, u.daily_goal from users u where u.user_id = $1', [userId])
 
             const audioReport = await connection.query(`
-                select count(*) as classified_today, (select count(*) from audios where classified_by = $1 and status = 2 ) as classified_total,
-                (select count(*) from audios where date_trunc('day', classified_at) between current_date - 4 and current_date and classified_by = $1 and status=2 ) as last_four_days 
-                from audios where classified_by = $1 and date_trunc('day', classified_at) = current_date and status = 2 
+                SELECT
+                u.daily_goal, u.name, u.last_name,
+                COUNT(DISTINCT cd.audio_code) as classified_total,
+                COALESCE(past_counts.last_four_total, 0) as last_four_days,
+                COALESCE(today_counts.today_total, 0) as classified_today
+                FROM classification_details cd
+                LEFT JOIN (
+                SELECT
+                COUNT(DISTINCT audio_code) as last_four_total
+                FROM classification_details
+                WHERE
+                classified_by = $1
+                AND date_trunc('day', classified_at) BETWEEN CURRENT_DATE - 4 AND CURRENT_DATE
+                ) AS past_counts
+                ON TRUE
+                LEFT JOIN (
+                SELECT
+                COUNT(DISTINCT audio_code) as today_total
+                FROM classification_details
+                WHERE
+                classified_by = $1
+                AND date_trunc('day', classified_at) = CURRENT_DATE 
+                ) as today_counts
+                ON TRUE
+                INNER JOIN users u ON cd.classified_by = u.user_id
+                WHERE
+                cd.classified_by = $1
+                GROUP BY past_counts.last_four_total, u.daily_goal,  u.name, u.last_name, today_counts.today_total;
+
+            
             `, [userId])
 
             const values = {
@@ -186,8 +213,10 @@ export class AudioDAO {
 
         try {
             await connection.connect()
-            
-            const res = await connection.query(`select count(labeled_speaker) as total, labeled_speaker as new_type from conversations where labeled_speaker is not null group by labeled_speaker`)
+
+            const res = await connection.query(`select count(labeled_speaker) as total, labeled_speaker as new_type 
+            from conversations_nlp where 
+            labeled_speaker is not null group by labeled_speaker`)
 
             return res.rows
 
@@ -203,9 +232,8 @@ export class AudioDAO {
 
         try {
             await connection.connect()
-            const res = await connection.query(`select count(u.*) as total, CONCAT(u.name, ' ', u.last_name) as new_type 
-            from audios a inner join users u on u.user_id  = a.classified_by
-            group by u.name, u.last_name`)
+            const res = await connection.query(`select count(distinct(c.audio_code)) as total, CONCAT(u.name, ' ', u.last_name) as new_type  from classification_details c inner join users u on u.user_id = c.classified_by group by u.name, u.last_name
+            `)
             return res.rows
 
         } catch (error) {
@@ -229,7 +257,7 @@ export class AudioDAO {
                 where status = 2
               GROUP BY date_trunc('hour', classified_at), classified_by
             ) AS subquery inner join users u on u.user_id = classified_by  group by  u."name" , u.last_name `)
-            
+
             return res.rows
 
         } catch (error) {
@@ -239,14 +267,14 @@ export class AudioDAO {
         }
     }
 
-    public async GetReportByDate(date:any) {
+    public async GetReportByDate(date: any) {
         const connection = await connectDb()
 
         try {
             await connection.connect()
-            const res = await connection.query(`select count(u.*) as total, CONCAT(u.name, ' ', u.last_name) as new_type 
-            from audios a inner join users u on u.user_id  = a.classified_by 
-            where date_trunc('day', classified_at) = $1 group by u.name, u.last_name `, [
+            const res = await connection.query(`select count(distinct(c.audio_code)) as total, CONCAT(u.name, ' ', u.last_name) as new_type 
+            from classification_details c inner join users u on u.user_id = c.classified_by
+			where date_trunc('day', classified_at) = $1 group by u.name, u.last_name `, [
                 date
             ])
 
@@ -258,7 +286,7 @@ export class AudioDAO {
         }
     }
 
-    public async UpdateStatusRestart({audioCode, userID}:any){
+    public async UpdateStatusRestart({ audioCode, userID }: any) {
         const connection = await connectDb();
         console.log("audio to skip", audioCode)
         try {
@@ -272,7 +300,7 @@ export class AudioDAO {
         }
     }
 
-    public async SetVoiceMailAudio(audioCode:any){
+    public async SetVoiceMailAudio(audioCode: any) {
         console.log("AUDIO UPDATE BUZON", audioCode)
         const connection = await connectDb();
         try {
