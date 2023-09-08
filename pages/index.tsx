@@ -37,7 +37,7 @@ const Home: NextPage = () => {
       userID
     })
       .then((datax) => {
-        // console.log(datax)
+        console.log(datax)
         setConvx(datax.data)
         const audio_code = datax.data[0].audio_code
 

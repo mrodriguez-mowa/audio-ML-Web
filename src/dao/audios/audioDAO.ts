@@ -56,8 +56,12 @@ export class AudioDAO {
 
             randomId = randomIdRes.rows.filter((el) => !el.sent_to || !el.sent_to.includes(userID))
 
-            const randomSelected = Math.floor(Math.random() * (randomId.length - 0 + 1) + 1)
-            randomId = randomId[randomSelected].audio_code
+            console.log("randomID AUDIO", randomId)
+
+            const randomSelected = Math.floor(Math.random()*randomId.length)
+            console.log("SELECTED NUMBER", randomSelected)
+            randomId = randomId[Math.floor(Math.random()*randomId.length)]
+            console.log(randomId)
         } catch (error) {
             console.error(error)
         } finally {
@@ -249,14 +253,15 @@ export class AudioDAO {
         try {
             await connection.connect()
 
-            const res = await connection.query(`SELECT AVG(count_respuestas)::integer AS total, CONCAT (name,' ' ,u.last_name) as new_type
+            const res = await connection.query(`
+                SELECT AVG(count_respuestas)::integer AS total, CONCAT (name,' ' ,u.last_name) as new_type
             FROM (
-              SELECT COUNT(*) AS count_respuestas,
+              SELECT COUNT(distinct(c.audio_code)) AS count_respuestas,
                 classified_by
-              FROM audios a 
-                where status = 2
+              FROM classification_details c
               GROUP BY date_trunc('hour', classified_at), classified_by
-            ) AS subquery inner join users u on u.user_id = classified_by  group by  u."name" , u.last_name `)
+            ) AS subquery inner join users u on u.user_id = classified_by  group by  u."name" , u.last_name
+            `)
 
             return res.rows
 
